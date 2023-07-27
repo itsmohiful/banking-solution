@@ -32,7 +32,7 @@ typedef struct{
 
 //account structure(obj)
 typedef struct {
-    char name[30];
+    char name[USERNAME_LENGTH];
     char phone[PHONENUMBER_LENGTH];
     char email[EMAIL_LENGTH];
     char address[100];
@@ -67,18 +67,18 @@ void createBankAccount(){
     Account bankAccount;
 
     printf("Enter Your Name: ");
-    scanf("%s", &bankAccount.name);
+    fgets(bankAccount.name, USERNAME_LENGTH, stdin);
 
     printf("Enter Your Email: ");
-    scanf("%s", &bankAccount.email);
+    fgets(bankAccount.email, EMAIL_LENGTH, stdin);
 
     printf("Enter Your Phone No: ");
-    scanf("%s", &bankAccount.phone);
+    fgets(bankAccount.phone, PHONENUMBER_LENGTH, stdin);
 
     printf("Enter Your Address: ");
-    scanf("%s", &bankAccount.address);
+    fgets(bankAccount.address, 100, stdin);
     
-    srend(time(0));
+    srand(time(0));
     bankAccount.accountNo = rand() % 9000 + 1000;
 
     if(!storeBankUserData(bankAccount)){
@@ -215,7 +215,7 @@ void createUser(){
     AuthUser user;
 
     printf("Enter username: ");
-    scanf("%s", user.username);
+    gets(user.username);
 
     if (isUsernameAlreadyExist(user.username)){     //showing error if username already exist in db
 
@@ -224,7 +224,7 @@ void createUser(){
     }
 
     printf("Enter password: ");
-    scanf("%s", user.password);
+    gets(user.password);
 
     storeAuthData(user);    //store new user information
     printf("\nUser Created And Logged In Successfully.\n");
@@ -264,14 +264,15 @@ int authValidation(AuthUser authenticateUser){
 // login method defination
 void login(){
     AuthUser authenticateUser;
-
+    char blankChar;
     printf("Enter username: ");
-    scanf("%s", authenticateUser.username);
+    fgets(authenticateUser.username, USERNAME_LENGTH, stdin);
+    scanf("%c",&blankChar);
     printf("Enter password: ");
-    scanf("%s", authenticateUser.password);
+    fgets(authenticateUser.password, PASSWORD_LENGTH, stdin);
 
     if (!authValidation(authenticateUser)){
-        printf("Invalid username or password. \n");
+        printf("\nInvalid username or password! Try again. \n");
         login();
     }
 
