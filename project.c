@@ -3,8 +3,10 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
 // #include <conio.h>
-//#include <windows.h>
+// #include <windows.h>
 
 // pre define fixed property
 #define USERNAME_LENGTH 30
@@ -14,14 +16,35 @@
 #define AUTH_DB "authDB.txt"
 #define BANK_DB "bankDB.txt"
 
+// ANSI escape codes for text color
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_YELLOW  "\x1b[33m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
 
-// //set cursor position
-// COORD coord = {0, 0};
-// void gotoxy(int a, int b) {
-//     coord.X = a;
-//     coord.Y = b;
+
+
+
+// void gotoxy(int x, int y) {
+//     COORD coord;
+//     coord.X = x;
+//     coord.Y = y;
 //     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 // }
+
+int getTerminalRows() {
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    return w.ws_row;
+}
+
+
+void gotoxy(int x, int y) {
+    printf("\033[%d;%dH", y, x);
+}
 
 //user structure(obj)
 typedef struct{
@@ -47,7 +70,7 @@ int storeBankUserData(Account userAccount){
         FILE *bankDb = fopen(BANK_DB, "a");
 
         if (bankDb == NULL){
-            printf("Failed to open Bank DB File.\n");
+            printf(ANSI_COLOR_RED "Failed to open Bank DB File.\n" ANSI_COLOR_RESET);
             exit(1);
         }
 
@@ -66,31 +89,98 @@ int storeBankUserData(Account userAccount){
 void createBankAccount(){
     Account bankAccount;
 
-    printf("Enter Your Name: ");
-    fgets(bankAccount.name, USERNAME_LENGTH, stdin);
+    int c;
+    int i = 0;
 
-    printf("Enter Your Email: ");
-    fgets(bankAccount.email, EMAIL_LENGTH, stdin);
+    printf(ANSI_COLOR_MAGENTA "Enter Your Name: " ANSI_COLOR_RESET);
+    scanf("%29s",&bankAccount.name);
 
-    printf("Enter Your Phone No: ");
-    fgets(bankAccount.phone, PHONENUMBER_LENGTH, stdin);
 
-    printf("Enter Your Address: ");
-    fgets(bankAccount.address, 100, stdin);
+    printf(ANSI_COLOR_MAGENTA "\nEnter Your Email: "ANSI_COLOR_RESET);
+    scanf("%29s",&bankAccount.email);
+
+    printf(ANSI_COLOR_MAGENTA "\nEnter Your Phone No: "ANSI_COLOR_RESET);
+    scanf("%15s",&bankAccount.phone);
+
+    printf(ANSI_COLOR_MAGENTA "\nEnter Your Address: "ANSI_COLOR_RESET);
+    scanf("%99s",&bankAccount.address);
     
     srand(time(0));
     bankAccount.accountNo = rand() % 9000 + 1000;
 
     if(!storeBankUserData(bankAccount)){
-        printf("Some Went Wrong! Please Try Again.");
+        printf(ANSI_COLOR_RED "Some Went Wrong! Please Try Again." ANSI_COLOR_RESET);
         createBankAccount();
     };
 
-    printf("\n Bank Account Craeted Successfully.\n");
-    printf("\n Your Account No: %d", bankAccount.accountNo);
-    printf("\n Please Remember Your Account No For Future.\n");
+    printf(ANSI_COLOR_GREEN "\n \"%s\" , Your Bank Account Successfully Craeted. \n\n"ANSI_COLOR_RESET, bankAccount.name);
+    printf(ANSI_COLOR_BLUE "\n Your Account No: %d" ANSI_COLOR_RESET, bankAccount.accountNo);
+    printf(ANSI_COLOR_YELLOW"\n -|- Please Remember Your Account No For Future -|-\n"ANSI_COLOR_RESET);
     
 };
+
+int bankUserList(){
+    printf("\033[2J");
+    Account userList;
+    
+    FILE *bankDB = fopen(BANK_DB, "r");
+
+    if (bankDB == NULL){
+        printf(ANSI_COLOR_RED "Error: Could not open Bnak DB file.\n"ANSI_COLOR_RESET);
+        // exit(1);
+        return 0;
+    }
+
+    int listNo = 0;
+    int getRowNum = getTerminalRows();
+    char name[USERNAME_LENGTH];
+    int accountNo;
+    char email[EMAIL_LENGTH];
+    long long int phone;
+    char address[100];
+
+    while(fscanf(bankDB, "%s %d %s %lld %s\n", name, &accountNo, email, &phone, address) == 5){
+
+        listNo++;
+
+        if(listNo == 1){
+            printf(ANSI_COLOR_BLUE "\n \t <> All Bank Account List -- \n \n\n" ANSI_COLOR_RESET);
+            
+            gotoxy(5, getRowNum);  printf(ANSI_COLOR_CYAN "Name");
+            gotoxy(20, getRowNum);  printf("Account No");
+            gotoxy(40, getRowNum); printf("Email");
+            gotoxy(80, getRowNum); printf("Phone");
+            gotoxy(105, getRowNum); printf("Address");
+
+
+            printf("\n------------------------------------------------------------------------------------------------------\n\n");
+        };
+
+            getRowNum = getTerminalRows();
+            gotoxy(5, getRowNum);  printf(ANSI_COLOR_MAGENTA "%s",name);
+            gotoxy(20, getRowNum);  printf("%d",accountNo);
+            gotoxy(40, getRowNum); printf("%s",email);
+            gotoxy(80, getRowNum); printf("%lld",phone);
+            gotoxy(105, getRowNum); printf("%s",address);
+        printf("\n------------------------------------------------------------------------------------------------------\n \n"ANSI_COLOR_RESET);
+    };
+
+    if(listNo > 0){
+        printf(ANSI_COLOR_YELLOW"\n <|> Total Active Account : %d <|>\n \n "ANSI_COLOR_RESET, listNo);
+    }
+
+    if(listNo == 0){
+        printf(ANSI_COLOR_RED"\n Bank Account Not Found !\n\n" ANSI_COLOR_RESET);
+        return 0;
+    }
+
+    fclose(bankDB);
+
+    
+
+    return bankUserList;
+}
+
 
 
 
@@ -114,27 +204,33 @@ int bankModule(){
     // gotoxy(43, 20); scanf("%d", &choiceCase);   //take choice input from user
 
 
-    printf("\nWELCOME TO MAIN MENU\n");
-    printf("[1] . Customer Account Registration\n");
-    printf("[2] . View Customer Accounts\n");
+    printf(ANSI_COLOR_GREEN "\n<> MAIN MENU <>\n \n");
+
+    printf(ANSI_COLOR_YELLOW "[1] . Bank Account Registration\n");
+    printf("[2] . View ALL Customers Account\n");
     printf("[3] . Edit Customer Account\n");
     printf("[4] . Delete Customer Account\n");
     printf("[5] . Search Customer Account\n");
     printf("[6] . Transaction\n");
     printf("[7] . About US \n");
     printf("[8] . Log Out !!! \n");
-    printf("\n Please Enter Your Choice [1-8] : ");
+
+    printf(ANSI_COLOR_CYAN "\n Please Enter Your Choice [1-8] : "ANSI_COLOR_RESET);
 
     // gotoxy(43, 20); scanf("%d", &choiceCase);
     scanf("%d",&choiceCase);
 
     switch (choiceCase){
-    case 1:
+    case 1:{
         createBankAccount();
         bankModule();
-    case 2:
-        printf("Under Development");
+    }
+    case 2:{
+        int totalAccount = bankUserList();
+        printf("\n");
+        bankModule();
         break;
+    }
 
     case 3:
         printf("Under Development");
@@ -161,6 +257,11 @@ int bankModule(){
         break;
 
     default:
+        if(choiceCase > 0 && choiceCase <= 9){
+            bankModule();
+        }else{
+            printf("\n Alert: Enter Numeric Value Must! \n \n");
+        }
         break;
     }
 
@@ -214,20 +315,23 @@ void storeAuthData(AuthUser authData){
 void createUser(){
     AuthUser user;
 
-    printf("Enter username: ");
-    gets(user.username);
+    printf(ANSI_COLOR_MAGENTA "Enter username: ");
+    scanf("%49s", user.username);
+
+    
 
     if (isUsernameAlreadyExist(user.username)){     //showing error if username already exist in db
 
-        printf("Error: Username already exist.\n");
+        printf(ANSI_COLOR_RED "\nAlert: Username already exist ! Try again -\n\n");
         createUser();
     }
 
-    printf("Enter password: ");
-    gets(user.password);
+    printf(ANSI_COLOR_BLUE "Enter password: ");
+    scanf("%29s", user.password);
 
     storeAuthData(user);    //store new user information
-    printf("\nUser Created And Logged In Successfully.\n");
+    printf(ANSI_COLOR_GREEN "\n  -- User Created And Logged In Successfully -- \n\n");
+    printf(ANSI_COLOR_MAGENTA "\n  -|- Welcome \"%s\" , To Banking Solution -|- \n\n"ANSI_COLOR_RESET, user.username);
     bankModule();
 }
 // ==================END CREATE USER OR REGISTER USER============================
@@ -241,7 +345,7 @@ int authValidation(AuthUser authenticateUser){
     FILE *file = fopen(AUTH_DB, "r");
 
     if (file == NULL){
-        printf("Failed to open Auth DB File.\n");
+        printf(ANSI_COLOR_RED "Failed to open Auth DB File.\n" ANSI_COLOR_RESET);
         exit(1);
     }
 
@@ -262,25 +366,31 @@ int authValidation(AuthUser authenticateUser){
 }
 
 // login method defination
-void login(){
+void login() {
     AuthUser authenticateUser;
     char blankChar;
-    printf("Enter username: ");
-    fgets(authenticateUser.username, USERNAME_LENGTH, stdin);
-    scanf("%c",&blankChar);
-    printf("Enter password: ");
-    fgets(authenticateUser.password, PASSWORD_LENGTH, stdin);
 
-    if (!authValidation(authenticateUser)){
-        printf("\nInvalid username or password! Try again. \n");
+    printf(ANSI_COLOR_MAGENTA "Enter username: ");
+    scanf("%49s", authenticateUser.username);
+
+    printf(ANSI_COLOR_CYAN "\nEnter password: ");
+    scanf("%29s", authenticateUser.password);
+
+    // Consume the newline character left in the input buffer
+    // while ((blankChar = getchar()) != '\n' && blankChar != EOF);
+
+    if (!authValidation(authenticateUser)) {
+        printf("\nInvalid username or password! Try again.\n");
         login();
     }
+    printf("\033[2J"); 
+    // fflush(stdout);
 
-    printf("\n*----***----***----***----* \n");
-    printf("Authentication successful.\n");
-    printf("*----***----***----***----* \n \n");
-
+    printf(ANSI_COLOR_BLUE "\n*----***----***----***----*\n");
+    printf(ANSI_COLOR_MAGENTA "Authentication successful.\n");
+    printf(ANSI_COLOR_BLUE "*----***----***----***----*\n\n"ANSI_COLOR_RESET);
 }
+
 // ================== END LOGIN FUNCTIONALITY============================
 
 
@@ -291,11 +401,11 @@ int home(){
     int choiceCase;
 
     //selected by annonymous user(before login)
-    printf(" [1] . Login \n [2] . Create User \n [3] . Exit \n");
-    printf("Please Enter Your Choice [1-3] : ");
+    printf(ANSI_COLOR_BLUE " [1] . Login \n [2] . Create User \n [3] . Exit \n");
+    printf(ANSI_COLOR_YELLOW "\nPlease Enter Your Choice [1-3] : " ANSI_COLOR_RESET);
 
     scanf("%d", &choiceCase);    //take choice input from user
-
+    printf("\n");
 
     switch(choiceCase){
         case 1:{
@@ -311,8 +421,14 @@ int home(){
             printf("Exit \n");
             return 0;
         default:
-            printf("Invalid choice.\n");
-            home();
+            printf("Invalid choice.\n \n");
+            if(choiceCase > 0 && choiceCase <=9){
+                home();
+            }
+            else{
+                printf(ANSI_COLOR_RED "Enter a numeric value must.\n"ANSI_COLOR_RESET);
+                return 0;
+            }
     }
 }
 
@@ -320,8 +436,9 @@ int home(){
 // main function
 int main()
 {
+    // printf(ANSI_COLOR_RED "This is red text.\n" ANSI_COLOR_RESET);
 
-    printf(" \t \"Banking Solution\" \n");
+    printf(ANSI_COLOR_CYAN " \t \"Banking Solution\" \n \n" ANSI_COLOR_RESET);
 
     home();
 
