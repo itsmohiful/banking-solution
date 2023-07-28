@@ -237,8 +237,7 @@ int bankUserList(){
 
     printf("\033[2J");
     clearTerminal(); //clear terminal
-    printf("dhukce");
-    // return 1;
+
 
     Account userList;
     
@@ -253,7 +252,7 @@ int bankUserList(){
     }
 
     int listNo = 0;
-    int getRowNum = 4;
+    int getRowNum = 13;
     char name[USERNAME_LENGTH];
     int accountNo;
     char email[EMAIL_LENGTH];
