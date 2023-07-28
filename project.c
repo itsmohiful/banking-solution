@@ -25,6 +25,26 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
+
+//user structure(obj)
+typedef struct{
+    char username[USERNAME_LENGTH];
+    char password[PASSWORD_LENGTH];
+} AuthUser;
+
+
+//account structure(obj)
+typedef struct {
+    char name[USERNAME_LENGTH];
+    char phone[PHONENUMBER_LENGTH];
+    char email[EMAIL_LENGTH];
+    char address[100];
+    int accountNo;
+} Account;
+
+
+
+
 //-----GOBAL METHOS-----------
 int getTerminalRows() {    // chatch curson position
     struct winsize w;
@@ -143,25 +163,6 @@ void warningMsg(char message[300]){     //warning message showing.
 }
 
 //-----GOBAL METHOS END-----------
-
-
-
-//user structure(obj)
-typedef struct{
-    char username[USERNAME_LENGTH];
-    char password[PASSWORD_LENGTH];
-} AuthUser;
-
-
-//account structure(obj)
-typedef struct {
-    char name[USERNAME_LENGTH];
-    char phone[PHONENUMBER_LENGTH];
-    char email[EMAIL_LENGTH];
-    char address[100];
-    int accountNo;
-} Account;
-
 
 
 // store bank user account data when create new bank account
@@ -315,12 +316,12 @@ int bankUserList(){
 
     fclose(bankDB);
 
-    return bankUserList; //return total account
+    return 1; //return total account
 }
 
 
 //View Single Bank User Or searching bank user
-void searchingBankUser(char targetName[30]){
+int searchingBankUser(char targetName[30]){
 
     Account userList;
     
@@ -389,7 +390,7 @@ void searchingBankUser(char targetName[30]){
 
 
 //Update Bank Accounts Info
-void updateAccountsInfo(int accountId){
+int updateAccountsInfo(int accountId){
 
     Account bankAccount;
     
@@ -473,11 +474,6 @@ void updateAccountsInfo(int accountId){
 
 
 
-
-
-
-
-
 // bank module defination
 int bankModule(){
 
@@ -486,7 +482,7 @@ int bankModule(){
     printf(ANSI_COLOR_BLUE "\n<> MAIN MENU <>\n \n");
 
     printf(ANSI_COLOR_YELLOW "[1] . Bank Account Registration\n");
-    printf("[2] . View ALL Bank Accountsn");
+    printf("[2] . View ALL Bank Accounts\n");
     printf("[3] . Edit Bank Account\n");
     printf("[4] . Delete Bank Account\n");
     printf("[5] . Search Bank Account\n");
@@ -510,10 +506,10 @@ int bankModule(){
         }
         case 2:{     //account List
             clearTerminal();
-            sleep(1);
+            sleep(0.5);
             bankUserList();
             printf("\n");
-            sleep(1);
+            sleep(0.5);
             bankModule();
             break;
         }
@@ -558,8 +554,8 @@ int bankModule(){
                 bankModule();
             }
             else{
-                char msg[300] = "Alert: Enter Numeric Value Must!";
-                errorMsg(msg);
+                
+                errorMsg("Alert: Enter Numeric Value Must!");
                 printf("\n \n");
             }
             break;
@@ -603,8 +599,7 @@ void storeAuthData(AuthUser authData){
 
     if (authDB == NULL){
 
-        char msg[300] = "Failed to open Auth DB File";
-        errorMsg(msg);
+        errorMsg("Failed to open Auth DB File");
         exit(1);
     }
 
@@ -622,11 +617,9 @@ void createUser(){
 
     
 
-    if (isUsernameAlreadyExist(user.username)){     //showing error if username already exist in db
-
-        
-        char msg[300] = "Alert: Username already exist ! Try again";
-        errorMsg(msg);
+    if (isUsernameAlreadyExist(user.username)){
+             //showing error if username already exist in db
+        errorMsg("Alert: Username already exist ! Try again");
         printf("\n\n");
         createUser();
     }
@@ -636,11 +629,9 @@ void createUser(){
 
     storeAuthData(user);    //store new user information
 
-    char msg[300] = "User Created And Logged In Successfully";
-    successMsg(msg);
+    successMsg("User Created And Logged In Successfully");
 
-    char msg1[300] = "Welcome To Banking Solution";
-    infoMsg(msg1);
+    infoMsg("Welcome To Banking Solution");
 
 
     bankModule();
@@ -689,17 +680,17 @@ void login() {
     scanf("%29s", authenticateUser.password);
 
     if (!authValidation(authenticateUser)) {
+
         printf("\n\n");
-        char message[300] = "Invalid username or password! Try again ";
-        errorMsg(message);
+        errorMsg("Invalid username or password! Try again ");
         printf("\n \n");
 
         login();
     }
+
     clearTerminal(); //clear terminal
 
-    char message[300] = "Authentication successful";
-    successMsg(message);
+    successMsg( "Authentication successful");
 }
 
 // ================== END LOGIN FUNCTIONALITY============================
@@ -730,18 +721,24 @@ int home(){
         case 2:
             createUser();
             break;
-        case 3:
+
+        case 3:{
             printf("Exit \n");
-            return 0;
-        default:
-            printf("Invalid choice.\n \n");
+            exit(1);
+        }
+        default:{
+            errorMsg("Invalid Choice !");
+            printf("\n \n");
             if(choiceCase > 0 && choiceCase <=9){
                 home();
             }
             else{
-                printf(ANSI_COLOR_RED "Enter a numeric value must.\n"ANSI_COLOR_RESET);
+                errorMsg("Enter a numeric value must !");
+                printf("\n \n");
+
                 return 0;
             }
+        }
     }
 }
 
