@@ -1,4 +1,4 @@
-#Banking Solution - C
+# Banking Solution - C
 
 ## Introduction
 
