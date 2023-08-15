@@ -9,7 +9,7 @@
 // #include <windows.h>
 
 // pre define fixed property
-#define USERNAME_LENGTH 30
+#define USERNAME_LENGTH 50
 #define PASSWORD_LENGTH 30
 #define EMAIL_LENGTH 70
 #define PHONENUMBER_LENGTH 15
@@ -26,6 +26,8 @@
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
 
+int adminFlag = 0;
+
 //user structure(obj)
 typedef struct{
     char username[USERNAME_LENGTH];
@@ -36,13 +38,15 @@ typedef struct{
 //account structure(obj)
 typedef struct {
     char name[USERNAME_LENGTH];
-    char phone[PHONENUMBER_LENGTH];
+    long long int phone;
     char email[EMAIL_LENGTH];
     char address[100];
     int accountNo;
+    double balance; 
 } Account;
 
-
+//function declaration of avoid implicite declaration
+int home();
 
 
 //-----GOBAL METHOS-----------
@@ -69,6 +73,7 @@ void clearTerminal(){      ///clear terminal & show project name
     gotoxy(0,8);
 }
 
+
 void loading(){
     gotoxy(30,12);printf(ANSI_COLOR_YELLOW "[LOADING....]" ANSI_COLOR_RESET);
     sleep(2);
@@ -83,7 +88,8 @@ void loading(){
 }
 
 
-void successMsg(char message[300]){     //success message showing.
+void successMsg(char *message){     //success message showing.
+
     int line = strlen(message);
     // gotoxy(1,8);
 
@@ -98,7 +104,8 @@ void successMsg(char message[300]){     //success message showing.
     printf(""ANSI_COLOR_RESET);
 }
 
-void errorMsg(char message[300]){     //error message showing.
+void errorMsg(char *message){     //error message showing.
+
     int line = strlen(message);
     // gotoxy(1,8);
 
@@ -114,7 +121,8 @@ void errorMsg(char message[300]){     //error message showing.
 }
 
 
-void infoMsg(char message[300]){     //info message showing.
+void infoMsg(char *message){     //info message showing.
+
     int line = strlen(message);
     // gotoxy(1,8);
 
@@ -130,7 +138,8 @@ void infoMsg(char message[300]){     //info message showing.
     printf(""ANSI_COLOR_RESET);
 }
 
-void infoMsgWithPerameter(char message[300], int value){     //info message showing.
+void infoMsgWithPerameter(char *message, int value){     //info message showing.
+
     int line = strlen(message);
     // gotoxy(1,8);
 
@@ -146,7 +155,7 @@ void infoMsgWithPerameter(char message[300], int value){     //info message show
     printf(""ANSI_COLOR_RESET);
 }
 
-void warningMsg(char message[300]){     //warning message showing.
+void warningMsg(char *message){     //warning message showing.
     int line = strlen(message);
     // gotoxy(1,8);
 
@@ -167,16 +176,15 @@ void warningMsg(char message[300]){     //warning message showing.
 
 // store bank user account data when create new bank account
 int storeBankUserData(Account userAccount){
-    if(userAccount.name && userAccount.email && userAccount.accountNo && userAccount.phone && userAccount.address){
+    if(userAccount.name && userAccount.email && userAccount.accountNo && userAccount.phone && userAccount.address && userAccount.balance){
         FILE *bankDb = fopen(BANK_DB, "a");
 
         if (bankDb == NULL){
-            char msg[300] = "Failed To Open Bank DB";
-            errorMsg(msg);
+            errorMsg("Failed To Open Bank DB");
             exit(1);
         }
 
-        fprintf(bankDb, "%s %d %s %s %s \n",userAccount.name, userAccount.accountNo, userAccount.email, userAccount.phone, userAccount.address);
+        fprintf(bankDb, "%s %d %s %lld %s %.2lf\n",userAccount.name, userAccount.accountNo, userAccount.email, userAccount.phone, userAccount.address, userAccount.balance);
 
         fclose(bankDb);
         
@@ -207,7 +215,7 @@ void createBankAccount(){
     scanf("%29s",bankAccount.email);
 
     printf(ANSI_COLOR_MAGENTA "\nEnter Your Phone No [Numeric]: "ANSI_COLOR_RESET);
-    scanf("%15s",bankAccount.phone);
+    scanf("%lld",&bankAccount.phone);
 
     printf(ANSI_COLOR_MAGENTA "\nEnter Your Address [In Letter]: "ANSI_COLOR_RESET);
     scanf(" %[^\n]s",bankAccount.address);
@@ -215,22 +223,18 @@ void createBankAccount(){
     //auto set account number
     srand(time(0));
     bankAccount.accountNo = rand() % 9000 + 1000;
+    bankAccount.balance = 1000;
 
     //store bank account data
     if(!storeBankUserData(bankAccount)){
-        char message[300] = "Something Went Wrong! Please Try Again";
-        errorMsg(message);
+        errorMsg("Something Went Wrong! Please Try Again");
         createBankAccount();
     };
 
     //showing messages
-    char mesg1[300] =  "Congratulations! Your Bank Account Created Successfully";
-    char mesg2[300] = "Yor Account Number Is ";
-    char mesg3[300] = "Please Remember Your Account Number For Future!";
-
-    successMsg(mesg1);
-    infoMsgWithPerameter(mesg2, bankAccount.accountNo);
-    warningMsg(mesg3);
+    successMsg("Congratulations! Your Bank Account Created Successfully");
+    infoMsgWithPerameter("Yor Account Number Is ", bankAccount.accountNo);
+    warningMsg("Please Remember Your Account Number For Future!");
     
     
 };
@@ -238,20 +242,14 @@ void createBankAccount(){
 
 //Bank user list methods
 int bankUserList(){
-
     printf("\033[2J");
     clearTerminal(); //clear terminal
-
-
     Account userList;
     
     FILE *bankDB = fopen(BANK_DB, "r");
 
     if (bankDB == NULL){
-
-        char msg[300] = "Error: Could not open Bnak DB file";
-        errorMsg(msg);
-        
+        errorMsg("Error: Could not open Bnak DB file");
         return 0;
     }
 
@@ -262,25 +260,26 @@ int bankUserList(){
     char email[EMAIL_LENGTH];
     long long int phone;
     char address[100];
+    double balance;
 
     //read bank data form bank DB file and store to these varriable
-    while(fscanf(bankDB, "%s %d %s %lld %s\n", name, &accountNo, email, &phone, address) == 5){
+    while(fscanf(bankDB, "%s %d %s %lld %s %lf\n", name, &accountNo, email, &phone, address, &balance) == 6){
 
         listNo++;
 
         if(listNo == 1){
 
-            char msg[300] = "All Bank Account List";
-            infoMsg(msg);
+            infoMsg("All Bank Account List");
             
             //header for list table
             gotoxy(5, getRowNum);  printf(ANSI_COLOR_CYAN "Name");
             gotoxy(20, getRowNum);  printf("Account No");
             gotoxy(37, getRowNum); printf("Email");
             gotoxy(65, getRowNum); printf("Phone");
-            gotoxy(88, getRowNum); printf("Address\n");
+            gotoxy(88, getRowNum); printf("Balance");
+            gotoxy(105, getRowNum); printf("Address\n");
 
-            for(int i=0; i < 110; i++){printf("-");};   // under line for header
+            for(int i=0; i < 120; i++){printf("-");};   // under line for header
             printf("\n");
             
         };
@@ -290,9 +289,10 @@ int bankUserList(){
             gotoxy(20, getRowNum);  printf("%d",accountNo);
             gotoxy(37, getRowNum); printf("%s",email);
             gotoxy(65, getRowNum); printf("%lld",phone);
-            gotoxy(88, getRowNum); printf("%s \n",address);
+            gotoxy(88, getRowNum); printf("%.2lf",balance);
+            gotoxy(105, getRowNum); printf("%s \n",address);
 
-            for(int i=0; i < 110; i++){printf("-"ANSI_COLOR_RESET);}; // under line for header
+            for(int i=0; i < 120; i++){printf("-"ANSI_COLOR_RESET);}; // under line for header
             printf("\n");
     };
 
@@ -300,17 +300,15 @@ int bankUserList(){
         printf("\n\n");
         gotox(120);
 
-        char msg[300] = "Total Active Account " ;
-
-        infoMsgWithPerameter(msg, listNo);
+        infoMsgWithPerameter("Total Active Account ", listNo);
     
     }
 
     if(listNo == 0){
         printf("\n\n");
         gotox(30);
-        char msg[300] = "Bank Account Not Found";
-        errorMsg(msg);
+
+        errorMsg("Bank Account Not Found");
         return 0;
     }
 
@@ -324,12 +322,10 @@ int bankUserList(){
 int searchingBankUser(char targetName[30]){
 
     Account userList;
-    
     FILE *bankDB = fopen(BANK_DB, "r");
 
     if (bankDB == NULL){
-        char msg[300] = "Error: Could not open Bnak DB file";
-        errorMsg(msg);
+        errorMsg("Error: Could not open Bnak DB file");
         return 0;
     }
 
@@ -340,136 +336,357 @@ int searchingBankUser(char targetName[30]){
     char email[EMAIL_LENGTH];
     long long int phone;
     char address[100];
+    double balance;
 
     //read bank data form bank DB file and store to these varriable
-    while(fscanf(bankDB, "%s %d %s %lld %s\n", name, &accountNo, email, &phone, address) == 5){
+    while(fscanf(bankDB, "%s %d %s %lld %s %lf\n", name, &accountNo, email, &phone, address, &balance) == 6){
 
         if(strcmp(targetName,name)==0){
-
-            char msg[300] = "Account Details For Bank User: ";
-            infoMsg(msg);
+            
+            infoMsg("Account Details For Bank User: ");
             
             //header for list table
             gotoxy(5, getRowNum);  printf(ANSI_COLOR_CYAN "Name");
             gotoxy(20, getRowNum);  printf("Account No");
             gotoxy(37, getRowNum); printf("Email");
             gotoxy(65, getRowNum); printf("Phone");
-            gotoxy(88, getRowNum); printf("Address\n");
+            gotoxy(88, getRowNum); printf("Balance");
+            gotoxy(105, getRowNum); printf("Address\n");
 
-            for(int i=0; i < 110; i++){printf("-");};   // under line for header
+            for(int i=0; i < 120; i++){printf("-");};   // under line for header
             printf("\n");
 
-            //showing table row value   
+            //showing table row as each user account    
             getRowNum += 3;
             gotoxy(5, getRowNum);  printf(ANSI_COLOR_MAGENTA "%s",name);
             gotoxy(20, getRowNum);  printf("%d",accountNo);
             gotoxy(37, getRowNum); printf("%s",email);
             gotoxy(65, getRowNum); printf("%lld",phone);
-            gotoxy(88, getRowNum); printf("%s \n",address);
+            gotoxy(88, getRowNum); printf("%lf",balance);
+            gotoxy(105, getRowNum); printf("%s \n",address);
 
-            for(int i=0; i < 110; i++){printf("-"ANSI_COLOR_RESET);}; // under line for header
-            printf("\n \n \n");
+            for(int i=0; i < 120; i++){printf("-"ANSI_COLOR_RESET);}; // under line for header
+            printf("\n");
 
+            fclose(bankDB);
             return 1;
-
         }
-
 
     };
 
-
     gotox(30);
-    char msg[300] = "Bank Account Not Found";
-    errorMsg(msg);
-
+    errorMsg("Bank Account Not Found");
     fclose(bankDB);
-
     return 0; 
 }
 
 
 
 //Update Bank Accounts Info
-int updateAccountsInfo(int accountId){
+int updateAccountsInfo(){
 
-    Account bankAccount;
-    
-    FILE *bankDB = fopen(BANK_DB, "r");
-
-    if (bankDB == NULL){
-        char msg[300] = "Error: Could not open Bnak DB file";
-        errorMsg(msg);
-        return 0;
+    FILE *bankDB = fopen("bankDB.txt", "r");
+    if (bankDB == NULL) {
+        perror("Error opening bankDB.txt");
+        return 1;
     }
 
-    int getRowNum = 13;
-    char name[USERNAME_LENGTH];
-    int accountNo;
-    char email[EMAIL_LENGTH];
-    long long int phone;
-    char address[100];
+    Account records[200];
+    int numRecords = 0;
 
-    //read bank data form bank DB file and store to these varriable
-    while(fscanf(bankDB, "%s %d %s %lld %s\n", name, &accountNo, email, &phone, address) == 5){
+    while (fscanf(bankDB, "%s %d %s %lld %s %lf\n",
+            records[numRecords].name, &records[numRecords].accountNo,
+            records[numRecords].email, &records[numRecords].phone,
+            records[numRecords].address,&records[numRecords].balance) == 6) {
+            
+            numRecords++;
+    }
 
-        if(accountId == accountNo){
+    fclose(bankDB);
+    clearTerminal();
 
-            char msg[300] = "Account No Matched! Now You Can Update Info ";
-            infoMsg(msg);
+    int accountToEdit;
+    printf(ANSI_COLOR_CYAN "Enter the account number you want to edit: ");
+    scanf("%d", &accountToEdit);
+    printf("\n\n");
 
+    int recordIndex = -1;
 
-
-            printf(ANSI_COLOR_YELLOW "Please Provide Correct Information ! \n\n " ANSI_COLOR_RESET);
-
-            //input object value from user
-            printf(ANSI_COLOR_BLUE "Enter Updated Name [In Letter]: " );
-            scanf(" %[^\n]s",bankAccount.name);
-
-            printf("\nEnter Updated Email [Must Include \'@\']: ");
-            scanf("%29s",bankAccount.email);
-
-            printf("\nEnter Updated Phone No [Numeric]: ");
-            scanf("%15s",bankAccount.phone);
-
-            printf("\nEnter Updated Address [In Letter]: "ANSI_COLOR_RESET);
-            scanf("%[^\n]s",bankAccount.address);
-                    
-            //header for list table
-            gotoxy(5, getRowNum);  printf(ANSI_COLOR_CYAN "Name");
-            gotoxy(20, getRowNum);  printf("Account No");
-            gotoxy(37, getRowNum); printf("Email");
-            gotoxy(65, getRowNum); printf("Phone");
-            gotoxy(88, getRowNum); printf("Address\n");
-
-            for(int i=0; i < 110; i++){printf("-");};   // under line for header
-            printf("\n");
-
-            //showing table row value   
-            getRowNum += 3;
-            gotoxy(5, getRowNum);  printf(ANSI_COLOR_MAGENTA "%s",name);
-            gotoxy(20, getRowNum);  printf("%d",accountNo);
-            gotoxy(37, getRowNum); printf("%s",email);
-            gotoxy(65, getRowNum); printf("%lld",phone);
-            gotoxy(88, getRowNum); printf("%s \n",address);
-
-            for(int i=0; i < 110; i++){printf("-"ANSI_COLOR_RESET);}; // under line for header
-            printf("\n \n \n");
-
-            return 1;
-
+    for (int i = 0; i < numRecords; i++) {
+        if (records[i].accountNo == accountToEdit) {
+            recordIndex = i;
+            break;
         }
+    }
+
+    if (recordIndex == -1) {
+        errorMsg("Account number not found. Enter valid number");
+        updateAccountsInfo();
+    }
 
 
-    };
+    //--------showing current information by table------
+    infoMsg("Current Infomation");
+    printf("\n");
+
+    //header for list table
+    gotoxy(5, 15);  printf(ANSI_COLOR_CYAN "Name");
+    gotoxy(20, 15);  printf("Account No");
+    gotoxy(37, 15); printf("Email");
+    gotoxy(65, 15); printf("Phone");
+    gotoxy(88, 15); printf("Balance");
+    gotoxy(105, 15); printf("Address\n");
+
+    for(int i=0; i < 120; i++){printf("-");};   // under line for header
+    printf("\n");
+
+    //value
+    gotoxy(5, 17);  printf(ANSI_COLOR_MAGENTA "%s",records[recordIndex].name);
+    gotoxy(20, 17);  printf("%d",records[recordIndex].accountNo);
+    gotoxy(37, 17); printf("%s",records[recordIndex].email);
+    gotoxy(65, 17); printf("%lld",records[recordIndex].phone);
+    gotoxy(88, 17); printf("%.2lf",records[recordIndex].balance);
+    gotoxy(105, 17); printf("%s \n",records[recordIndex].address);
+
+    for(int i=0; i < 120; i++){printf("-"ANSI_COLOR_RESET);}; // under line for header
+    printf("\n \n \n");
 
 
-    gotox(30);
-    char msg[300] = "Bank Account Not Found";
-    errorMsg(msg);
+    warningMsg("Enter new information");
+    printf(ANSI_COLOR_YELLOW "Name: ");
+    scanf("%s", records[recordIndex].name);
+    
+    printf("Email: ");
+    scanf("%s", records[recordIndex].email);
+
+    printf("Phone: ");
+    scanf("%lld", &records[recordIndex].phone);
+
+    printf("Address: " ANSI_COLOR_RESET);
+    scanf("%s", records[recordIndex].address);
+
+
+    //--------showing updated information by table------
+    infoMsg("Updated Infomation");
+    printf("\n");
+    //header for list table
+    gotoxy(5, 15);  printf(ANSI_COLOR_CYAN "Name");
+    gotoxy(20, 15);  printf("Account No");
+    gotoxy(37, 15); printf("Email");
+    gotoxy(65, 15); printf("Phone");
+    gotoxy(88, 15); printf("Balance");
+    gotoxy(105, 15); printf("Address\n");
+
+    for(int i=0; i < 120; i++){printf("-");};   // under line for header
+    printf("\n");
+
+    //value
+    gotoxy(5, 17);  printf(ANSI_COLOR_MAGENTA "%s",records[recordIndex].name);
+    gotoxy(20, 17);  printf("%d",records[recordIndex].accountNo);
+    gotoxy(37, 17); printf("%s",records[recordIndex].email);
+    gotoxy(65, 17); printf("%lld",records[recordIndex].phone);
+    gotoxy(88, 17); printf("%lf",records[recordIndex].balance);
+    gotoxy(105, 17); printf("%s \n",records[recordIndex].address);
+
+    for(int i=0; i < 120; i++){printf("-"ANSI_COLOR_RESET);}; // under line for header
+    printf("\n \n \n");
+
+
+
+    bankDB = fopen("bankDB.txt", "w");
+    if (bankDB == NULL) {
+        perror("Error opening bankDB.txt");
+        return 1;
+    }
+
+    for (int i = 0; i < numRecords; i++) {
+        fprintf(bankDB, "%s %d %s %lld %s %.2lf\n",
+                records[i].name, records[i].accountNo,
+                records[i].email, records[i].phone,
+                records[i].address,records[i].balance);
+    }
+
+    fclose(bankDB);
+    successMsg("Information Updated Successfully");
+    return 0;
+}
+
+
+
+
+//Update Bank Accounts Info
+int deleteBankAccount(){
+    FILE *bankDB = fopen("bankDB.txt", "r");
+    if (bankDB == NULL) {
+        errorMsg("Error opening bankDB");
+        return 1;
+    }
+
+    Account records[200];
+    int numRecords = 0;
+
+    while (fscanf(bankDB, "%s %d %s %lld %s %lf\n",
+            records[numRecords].name, &records[numRecords].accountNo,
+            records[numRecords].email, &records[numRecords].phone,
+            records[numRecords].address,&records[numRecords].balance) == 6) {
+            
+            numRecords++;
+    }
 
     fclose(bankDB);
 
-    return 0; //return total account
+    int accountToDelete;
+    printf(ANSI_COLOR_CYAN "Enter the account number you want to delete: ");
+    scanf("%d", &accountToDelete);
+    printf("\n\n");
+
+    int recordIndex = -1;
+
+    for (int i = 0; i < numRecords; i++) {
+        if (records[i].accountNo == accountToDelete) {
+            recordIndex = i;
+            break;
+        }
+    }
+
+    if (recordIndex == -1) {
+        errorMsg("Account number not found. Enter valid number");
+        deleteBankAccount();
+        
+    }
+
+
+    
+    bankDB = fopen("bankDB.txt", "w");
+    if (bankDB == NULL) {
+        errorMsg("Error opening bankDB");
+        return 1;
+    }
+
+    for (int i = 0; i < numRecords; i++) {
+
+        if( i == recordIndex){
+            continue;
+        }
+        else{
+            fprintf(bankDB, "%s %d %s %lld %s %.2lf\n",
+                records[i].name, records[i].accountNo,
+                records[i].email, records[i].phone,
+                records[i].address,records[i].balance);
+        }
+
+        
+    }
+
+    fclose(bankDB);
+    successMsg("Bank Account Deleted Successfully");
+    return 0;
+}
+
+
+
+int transaction(){
+    clearTerminal();
+
+    FILE *bankDB = fopen("bankDB.txt", "r+");
+    if (bankDB == NULL) {
+        errorMsg("Error opening bankDB");
+        return 0;
+    }
+
+    Account records[200];
+    int numRecords = 0;
+
+    while (fscanf(bankDB, "%s %d %s %lld %s %lf\n",
+            records[numRecords].name, &records[numRecords].accountNo,
+            records[numRecords].email, &records[numRecords].phone,
+            records[numRecords].address, &records[numRecords].balance) == 6) {
+
+            numRecords++;
+    }
+
+        fclose(bankDB);
+
+    // Perform transactions
+    int senderAccountNo;
+    int receiverAccountNo;
+    double amount;
+
+//----------find sender index------------
+    printf("Enter your account number : ");
+    scanf("%d", &senderAccountNo);
+    printf("\n");
+    int senderIndex = -1;
+
+    for (int i = 0; i < numRecords; i++) {
+        if (records[i].accountNo == senderAccountNo) {
+            senderIndex = i;
+            break;
+        }
+    }
+
+    if (senderIndex == -1) {
+        errorMsg("Invalid account number");
+        return 0;
+    }
+
+    if(records[senderIndex].balance < 1){
+        errorMsg("Failed! You Have No Balance To Perform Transaction");
+        return 0;
+    }
+
+
+//----------find receiver index------------
+    printf("Enter the receiver account number : ");
+    scanf("%d", &receiverAccountNo);
+    int receiverIndex = -1;
+
+    for (int i = 0; i < numRecords; i++) {
+        if (records[i].accountNo == receiverAccountNo) {
+            receiverIndex = i;
+            break;
+        }
+    }
+
+    if (receiverIndex == -1) {
+        errorMsg("Receiver account number not found!");
+        return 0;
+    }
+
+    //input amount
+    printf("Enter the amount for the transaction: ");
+    scanf("%lf", &amount);
+
+    if(records[senderIndex].balance < amount){
+        errorMsg("Failed For Insufficient Banalce!");
+        return 0;
+    }
+
+
+    FILE *bankDBW = fopen("bankDB.txt", "w");
+    if (bankDB == NULL) {
+        errorMsg("Error opening bankDB");
+        return 0;
+    }
+
+    //update balance
+    records[senderIndex].balance -= amount;  
+    records[receiverIndex].balance += amount;  
+    
+    // updated data write in db file
+    for (int i = 0; i < numRecords; i++) {
+        fprintf(bankDBW, "%s %d %s %lld %s %.2lf\n",
+                records[i].name, records[i].accountNo,
+                records[i].email, records[i].phone,
+                records[i].address, records[i].balance);
+    }
+
+    fclose(bankDBW);
+
+    successMsg("Transaction completed successfully");
+
+    return 1;
+
 }
 
 
@@ -506,21 +723,39 @@ int bankModule(){
         }
         case 2:{     //account List
             clearTerminal();
-            sleep(0.5);
+
+            // if(adminFlag == 1){
+            //     bankUserList();
+            // }
+            // else{
+            //     errorMsg("You are not eligible for this module!");
+            // }
+
             bankUserList();
             printf("\n");
-            sleep(0.5);
             bankModule();
             break;
         }
 
-        case 3:
-            printf("Under Development");
+        case 3:{
+            updateAccountsInfo();
+            bankModule();
             break;
 
-        case 4:
-            printf("Under Development");
+        }
+            
+
+        case 4:{
+            if(adminFlag == 1){
+                deleteBankAccount();
+            }
+            else{
+                errorMsg("You are not eligible for this module!");
+            }
+            
+            bankModule();
             break;
+        }
 
         case 5:{
             clearTerminal();
@@ -534,9 +769,11 @@ int bankModule(){
             bankModule();
             break;
         }
-        case 6:
-            printf("Under Development");
+        case 6:{
+            transaction();
+            bankModule();
             break;
+        }
 
         case 7:
             printf("Under Development");
@@ -545,6 +782,7 @@ int bankModule(){
         case 8:{
             clearTerminal();
             successMsg("Log Out Successfull");
+            adminFlag = 0;
             home();
             break;
         }
@@ -572,8 +810,8 @@ int isUsernameAlreadyExist(char username[USERNAME_LENGTH]){
     FILE *db = fopen(AUTH_DB, "r");
 
     if (db == NULL){
-        char msg[300] = "Failed to open Auth DB File";
-        errorMsg(msg);
+        
+        errorMsg("Failed to open Auth DB File");
     }
 
     char dbUsername[USERNAME_LENGTH];
@@ -647,8 +885,8 @@ int authValidation(AuthUser authenticateUser){
     FILE *file = fopen(AUTH_DB, "r");
 
     if (file == NULL){
-        char msg[300] = "Failed to open Auth DB File !";
-        errorMsg(msg);
+        
+        errorMsg("Failed to open Auth DB File !");
         exit(1);
     }
 
@@ -686,6 +924,10 @@ void login() {
         printf("\n \n");
 
         login();
+    }
+
+    if(strcmp(authenticateUser.username,"admin") == 0 || strcmp(authenticateUser.username,"itsmohiful") == 0 || strcmp(authenticateUser.username,"superadmin") == 0){
+        adminFlag = 1;
     }
 
     clearTerminal(); //clear terminal

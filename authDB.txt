@@ -1,8 +1,7 @@
 itsmohiful 12345
-itsFul 12345
-abc 123
+admin 123456
+superadmin 12345678
+abc 12345
 tom 12345
-json 12345
-siri 123
-jerry 12345
+itsful 12345
 plabon 12345
