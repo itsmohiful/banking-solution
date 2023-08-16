@@ -470,23 +470,23 @@ int updateAccountsInfo(){
     infoMsg("Updated Infomation");
     printf("\n");
     //header for list table
-    gotoxy(5, 15);  printf(ANSI_COLOR_CYAN "Name");
-    gotoxy(20, 15);  printf("Account No");
-    gotoxy(37, 15); printf("Email");
-    gotoxy(65, 15); printf("Phone");
-    gotoxy(88, 15); printf("Balance");
-    gotoxy(105, 15); printf("Address\n");
+    gotoxy(5, 55);  printf(ANSI_COLOR_CYAN "Name");
+    gotoxy(20, 55);  printf("Account No");
+    gotoxy(37, 55); printf("Email");
+    gotoxy(65, 55); printf("Phone");
+    gotoxy(88, 55); printf("Balance");
+    gotoxy(105,55); printf("Address\n");
 
     for(int i=0; i < 120; i++){printf("-");};   // under line for header
     printf("\n");
 
     //value
-    gotoxy(5, 17);  printf(ANSI_COLOR_MAGENTA "%s",records[recordIndex].name);
-    gotoxy(20, 17);  printf("%d",records[recordIndex].accountNo);
-    gotoxy(37, 17); printf("%s",records[recordIndex].email);
-    gotoxy(65, 17); printf("%lld",records[recordIndex].phone);
-    gotoxy(88, 17); printf("%lf",records[recordIndex].balance);
-    gotoxy(105, 17); printf("%s \n",records[recordIndex].address);
+    gotoxy(5, 57);  printf(ANSI_COLOR_MAGENTA "%s",records[recordIndex].name);
+    gotoxy(20, 57);  printf("%d",records[recordIndex].accountNo);
+    gotoxy(37, 57); printf("%s",records[recordIndex].email);
+    gotoxy(65, 57); printf("%lld",records[recordIndex].phone);
+    gotoxy(88, 57); printf("%lf",records[recordIndex].balance);
+    gotoxy(105,57); printf("%s \n",records[recordIndex].address);
 
     for(int i=0; i < 120; i++){printf("-"ANSI_COLOR_RESET);}; // under line for header
     printf("\n \n \n");
