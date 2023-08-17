@@ -56,6 +56,7 @@ int searchingBankUser();
 int updateAccountsInfo();
 int deleteBankAccount();
 int transaction();
+void aboutUs();
 
 
 //-----GOBAL METHOS-----------
@@ -729,6 +730,49 @@ int transaction(){
 
 
 
+
+void aboutUs(){
+    clearTerminal();
+    gotox(2);
+    printf("\n");
+    printf(ANSI_COLOR_MAGENTA"\t    About Us \n");
+    printf(ANSI_COLOR_YELLOW"\t<---------------->\n\n",ANSI_COLOR_RESET);
+
+
+    gotox(30); printf("\\ /            \\ / \n");
+    gotox(30); printf("\\\\    __ __     // \n");
+    gotox(30); printf(" \\\\  (      )  //\n");
+    gotox(30); printf("  \\\\ |  O O | //  \n");
+    gotox(30); printf("    \\\\   ^  //\n");
+    gotox(30); printf("      |     |   \n");
+    gotox(30); printf("      /     \\  \n");
+    gotox(30); printf("     /   /\\  \\ \n");
+    gotox(30); printf("    |  /   \\  | \n");
+    gotox(30); printf("    |  |    | | \n");
+
+
+    printf("\n\n\n\n");
+    gotox(10);printf(ANSI_COLOR_MAGENTA"We are tream \"Particle\" from NUB, trying to do something different\n");
+    gotox(10);printf("by using C language. Where used text file as DB and terminal as graphical interface.\n");
+    gotox(10);printf("Here we widely used file, structure, pointer, loop and other's wise features of C.",ANSI_COLOR_RESET);
+
+    printf("\n\n");
+    gotox(10);printf(ANSI_COLOR_BLUE"Team Members :\n");
+    gotox(6);printf(ANSI_COLOR_YELLOW"----------------\n\n");
+
+    gotox(6);printf(ANSI_COLOR_BLUE"1) Soyad Mohiful Islam\n");
+    gotox(6);printf(ANSI_COLOR_BLUE"2) Md Kawsar Alam Foysal\n");
+    gotox(6);printf(ANSI_COLOR_BLUE"3) Israt Jahan Rothy\n");
+    gotox(6);printf(ANSI_COLOR_BLUE"4) Shahria Sunnah\n");
+
+    printf("\n\n\n\n");
+
+    infoMsg("Thank You");
+
+}
+
+
+
 // bank module defination
 int bankModule(){
 
@@ -813,10 +857,12 @@ int bankModule(){
             break;
         }
 
-        case 7:
-            printf("Under Development");
+        case 7:{
+            aboutUs();
+            printf("\n\n\n\n\n");
+            bankModule();
             break;
-
+        }
         case 8:{
             clearTerminal();
             successMsg("Log Out Successfull");
@@ -1028,6 +1074,13 @@ int home(){
 int main(){
     clearTerminal(); //showing project name & clean terminal
     home();
+
+    // printf("         _\n");
+    // printf("       /( )\\\n");
+    // printf("       \\(_)/\n");
+    // printf("        /_\\\n");
+
+
 
     return 0;
 }
