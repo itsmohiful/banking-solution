@@ -47,6 +47,15 @@ typedef struct {
 
 //function declaration of avoid implicite declaration
 int home();
+void createUser();
+void login();
+int bankModule();
+void createBankAccount();
+int bankUserList();
+int searchingBankUser();
+int updateAccountsInfo();
+int deleteBankAccount();
+int transaction();
 
 
 //-----GOBAL METHOS-----------
@@ -201,6 +210,10 @@ void createBankAccount(){
 
     clearTerminal();
 
+    printf("\n");
+    printf(ANSI_COLOR_MAGENTA"\t    Account Registration \n");
+    printf(ANSI_COLOR_YELLOW"\t<------------------------->\n\n",ANSI_COLOR_RESET);
+
     Account bankAccount;
     printf(ANSI_COLOR_MAGENTA "Enter Your Correct Information For Opening An Account ! \n\n " ANSI_COLOR_RESET);
 
@@ -244,6 +257,7 @@ void createBankAccount(){
 int bankUserList(){
     printf("\033[2J");
     clearTerminal(); //clear terminal
+
     Account userList;
     
     FILE *bankDB = fopen(BANK_DB, "r");
@@ -288,7 +302,7 @@ int bankUserList(){
             gotoxy(5, getRowNum);  printf(ANSI_COLOR_MAGENTA "%s",name);
             gotoxy(20, getRowNum);  printf("%d",accountNo);
             gotoxy(37, getRowNum); printf("%s",email);
-            gotoxy(65, getRowNum); printf("%lld",phone);
+            gotoxy(65, getRowNum); printf("0%lld",phone);
             gotoxy(88, getRowNum); printf("%.2lf",balance);
             gotoxy(105, getRowNum); printf("%s \n",address);
 
@@ -319,7 +333,17 @@ int bankUserList(){
 
 
 //View Single Bank User Or searching bank user
-int searchingBankUser(char targetName[30]){
+int searchingBankUser(){
+
+    printf("\n");
+    printf(ANSI_COLOR_MAGENTA"\t    Searching User \n");
+    printf(ANSI_COLOR_YELLOW"\t<----------------------->\n\n",ANSI_COLOR_RESET);
+
+    char targetedName[30];
+
+    printf("Enter The Targeted User Name: ");
+    scanf(" %[^\n]s",targetedName);
+    printf("\n\n");
 
     Account userList;
     FILE *bankDB = fopen(BANK_DB, "r");
@@ -330,7 +354,7 @@ int searchingBankUser(char targetName[30]){
     }
 
     int listNo = 0;
-    int getRowNum = 13;
+    int getRowNum = 19;
     char name[USERNAME_LENGTH];
     int accountNo;
     char email[EMAIL_LENGTH];
@@ -341,9 +365,9 @@ int searchingBankUser(char targetName[30]){
     //read bank data form bank DB file and store to these varriable
     while(fscanf(bankDB, "%s %d %s %lld %s %lf\n", name, &accountNo, email, &phone, address, &balance) == 6){
 
-        if(strcmp(targetName,name)==0){
+        if(strcmp(targetedName,name)==0){
             
-            infoMsg("Account Details For Bank User: ");
+            infoMsg("Bank Account Details ");
             
             //header for list table
             gotoxy(5, getRowNum);  printf(ANSI_COLOR_CYAN "Name");
@@ -385,6 +409,10 @@ int searchingBankUser(char targetName[30]){
 //Update Bank Accounts Info
 int updateAccountsInfo(){
 
+    printf("\n");
+    printf(ANSI_COLOR_MAGENTA"\t    Edit Account Info \n");
+    printf(ANSI_COLOR_YELLOW"\t<--------------------------->\n\n",ANSI_COLOR_RESET);
+
     FILE *bankDB = fopen("bankDB.txt", "r");
     if (bankDB == NULL) {
         perror("Error opening bankDB.txt");
@@ -406,7 +434,7 @@ int updateAccountsInfo(){
     clearTerminal();
 
     int accountToEdit;
-    printf(ANSI_COLOR_CYAN "Enter the account number you want to edit: ");
+    printf(ANSI_COLOR_CYAN "Enter Your Account Number: ");
     scanf("%d", &accountToEdit);
     printf("\n\n");
 
@@ -444,7 +472,7 @@ int updateAccountsInfo(){
     gotoxy(5, 17);  printf(ANSI_COLOR_MAGENTA "%s",records[recordIndex].name);
     gotoxy(20, 17);  printf("%d",records[recordIndex].accountNo);
     gotoxy(37, 17); printf("%s",records[recordIndex].email);
-    gotoxy(65, 17); printf("%lld",records[recordIndex].phone);
+    gotoxy(65, 17); printf("0%lld",records[recordIndex].phone);
     gotoxy(88, 17); printf("%.2lf",records[recordIndex].balance);
     gotoxy(105, 17); printf("%s \n",records[recordIndex].address);
 
@@ -453,6 +481,7 @@ int updateAccountsInfo(){
 
 
     warningMsg("Enter new information");
+    printf("\n");
     printf(ANSI_COLOR_YELLOW "Name: ");
     scanf("%s", records[recordIndex].name);
     
@@ -484,7 +513,7 @@ int updateAccountsInfo(){
     gotoxy(5, 57);  printf(ANSI_COLOR_MAGENTA "%s",records[recordIndex].name);
     gotoxy(20, 57);  printf("%d",records[recordIndex].accountNo);
     gotoxy(37, 57); printf("%s",records[recordIndex].email);
-    gotoxy(65, 57); printf("%lld",records[recordIndex].phone);
+    gotoxy(65, 57); printf("0%lld",records[recordIndex].phone);
     gotoxy(88, 57); printf("%lf",records[recordIndex].balance);
     gotoxy(105,57); printf("%s \n",records[recordIndex].address);
 
@@ -516,6 +545,11 @@ int updateAccountsInfo(){
 
 //Update Bank Accounts Info
 int deleteBankAccount(){
+
+    printf("\n");
+    printf(ANSI_COLOR_MAGENTA"\t    Account Delete \n");
+    printf(ANSI_COLOR_YELLOW"\t<------------------------->\n\n",ANSI_COLOR_RESET);
+
     FILE *bankDB = fopen("bankDB.txt", "r");
     if (bankDB == NULL) {
         errorMsg("Error opening bankDB");
@@ -588,6 +622,10 @@ int deleteBankAccount(){
 int transaction(){
     clearTerminal();
 
+    printf("\n");
+    printf(ANSI_COLOR_MAGENTA"\t    Transaction \n");
+    printf(ANSI_COLOR_YELLOW"\t<---------------------->\n\n",ANSI_COLOR_RESET);
+
     FILE *bankDB = fopen("bankDB.txt", "r+");
     if (bankDB == NULL) {
         errorMsg("Error opening bankDB");
@@ -615,7 +653,7 @@ int transaction(){
 //----------find sender index------------
     printf("Enter your account number : ");
     scanf("%d", &senderAccountNo);
-    printf("\n");
+    printf("\n\n");
     int senderIndex = -1;
 
     for (int i = 0; i < numRecords; i++) {
@@ -654,7 +692,7 @@ int transaction(){
     }
 
     //input amount
-    printf("Enter the amount for the transaction: ");
+    printf("\nEnter the amount for the transaction: ");
     scanf("%lf", &amount);
 
     if(records[senderIndex].balance < amount){
@@ -693,6 +731,10 @@ int transaction(){
 
 // bank module defination
 int bankModule(){
+
+    printf("\n");
+    printf(ANSI_COLOR_MAGENTA"\t     Home \n");
+    printf(ANSI_COLOR_YELLOW"\t<--------------->\n\n",ANSI_COLOR_RESET);
 
     int choiceCase;
 
@@ -759,12 +801,8 @@ int bankModule(){
 
         case 5:{
             clearTerminal();
-            char targetedName[30];
-
-            printf("Enter The Targeted User Name: ");
-            scanf(" %[^\n]s",targetedName);
         
-            searchingBankUser(targetedName);
+            searchingBankUser();
 
             bankModule();
             break;
@@ -960,10 +998,11 @@ int home(){
             bankModule();
         }
 
-        case 2:
+        case 2:{
+            
             createUser();
             break;
-
+        }  
         case 3:{
             printf("Exit \n");
             exit(1);
